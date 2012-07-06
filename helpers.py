@@ -1,3 +1,6 @@
+from contextlib2 import contextmanager, ExitStack
+from mock import patch
+
 class KeyLookupCountError(Exception):
     """Raised when a key in MockDict is looked up some number of times
     different from how many are expected/asserted.
@@ -9,6 +12,7 @@ class MockDict(dict):
         self.key_lookups = list()
         self.updates = list()
         super(MockDict, self).__init__(*args, **kwargs)
+        for arg in args:
 
 
     def __getitem__(self, item):
@@ -28,3 +32,14 @@ class MockDict(dict):
         except AssertionError:
             raise KeyLookupCountError("Expected %s to be looked up once, but was looked up %s times" % (key, actual_lookup_count))
 
+
+@contextmanager
+def patches(*args):
+    stack = ExitStack()
+    for thing in args:
+        name = thing.split('.')[-1]
+        new_patch = patch(thing)
+        triggered_patch = stack.enter_context(new_patch)
+        setattr(stack, name, triggered_patch)
+
+    yield stack
