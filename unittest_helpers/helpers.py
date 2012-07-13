@@ -1,6 +1,30 @@
 from contextlib2 import contextmanager, ExitStack
 from mock import patch
 
+def path(path):
+    """Takes in a 'pathspec' and returns a callable. The returned callable
+    takes in a mapping and returns the result of looking up the path in the
+    supplied mapping.
+
+    A 'pathspec' defines a path inside of a nested structure. As a first shot,
+    it might be useful to try to reuse the syntax of a slice object, overriding
+    the colon character to denote a nested lookup, so:
+
+    path('a':'b':0)
+
+    would map to a successful nested lookup in this structure:
+
+    {'a': {'b': [1,2,3]}
+
+    And would return the number 1.
+
+    """
+    [('a', ('b', 1)),
+    ':' = '__getitem__'
+    chain = '.__getitem__'.join([path.split(':')])
+    print chain
+
+
 
 class MockDict(dict):
     """
@@ -62,6 +86,7 @@ class MockDict(dict):
 
     For now, this is kind of a hack-n-slash prototype to get some ideas down
     in code.
+
     """
 
 
@@ -95,6 +120,7 @@ class MockDict(dict):
             retval = super(MockDict, self).__getitem__(item)
         except KeyError:
             if self.assertlock:
+                self.assertlock = False
                 raise AssertionError("'{0}' was never looked up. Sorry.".format(item))
             else:
                 # setting this to a MockDict is optimistic. We don't
@@ -104,7 +130,7 @@ class MockDict(dict):
 
         if self.assertlock:
             self.assertlock = False
-            return True
+
         return retval
 
     def __setitem__(self, item, value):
