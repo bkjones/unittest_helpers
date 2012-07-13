@@ -35,10 +35,39 @@ def remove_decorator(decorated_func, remove_all_decorators=False):
 
 
 def restore_decorator(undecorated_func):
+    """ Restores the previously removed decorator
+
+        :returns: The original function with its decorators intact
+
+        >>> @contextmanager
+        ....    def foo():
+        ........    pass
+
+        >>> @contextmanager
+        ... @contextmanager
+        ... def bar():
+        ....... pass
+
+        >>> not_foo = remove_decorator(foo)
+
+        >>> assert not_foo != foo
+        >>> assert restore_decorator(not_foo) == foo
+
+        >>> one_removed = remove_decorator(bar)
+        >>> all_removed = remove_decorator(bar, True)
+
+        >>> assert one_removed != all_removed != bar
+        >>> assert restore_decorator(one_removed) == \
+                   restore_decorator(all_removed) == \
+                   bar
+
+
+    """
     if not hasattr(undecorated_func, '_previously_decorated_function'):
+        # We didnt remove any decorators on this function
         return undecorated_func
     else:
-        return getattr(undecorated_func, '_previously_decorated_function')
+        return undecorated_func._previously_decorated_function
 
 
 @contextmanager
