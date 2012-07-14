@@ -13,6 +13,13 @@ def remove_decorator(func, remove_all_decorators=False):
             the original function from within the decorated one.
 
         :returns: Function without the last applied decorator
+
+    Example:
+
+    >>> def execute(self):
+    ...     with remove_decorator(foo, True) as undecorated_func:
+    ......      # Execute some function in a unit test with no decorators
+    ......      self.returned = undecorated_func()
     """
 
     # If the function object has a closure object then try to recover
@@ -22,8 +29,11 @@ def remove_decorator(func, remove_all_decorators=False):
         closure = func.__closure__[0]
         undecorated_func = closure.cell_contents
 
-        while remove_all_decorators and hasattr(undecorated_func, '__closure__'):
-            closure = func.__closure__[0]
+        # If remove_all_decorators is true and the undecorated function has been
+        # decorated more than once then keep looping until there are no more closures.
+        # This will extract the original function with no decorators at all
+        while remove_all_decorators and getattr(undecorated_func, '__closure__', False):
+            closure = undecorated_func.__closure__[0]
             undecorated_func = closure.cell_contents
 
         # Return the undecorated function to the with statement block
